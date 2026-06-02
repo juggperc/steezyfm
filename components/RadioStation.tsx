@@ -5,6 +5,16 @@ import Peer, { DataConnection, MediaConnection } from 'peerjs';
 import { Play, Pause, Power, Users, Music, SkipForward, UploadCloud } from 'lucide-react';
 
 const CHANNELS = [88.1, 91.3, 94.5, 97.7, 100.9, 104.1, 107.3];
+
+const PEER_CONFIG = {
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  },
+  pingInterval: 10000,
+};
 const MIN_FREQ = 87.5;
 const MAX_FREQ = 108.0;
 
@@ -136,9 +146,7 @@ export default function RadioStation() {
     if(audioRef.current) {
         audioRef.current.pause();
         audioRef.current.srcObject = null;
-        audioRef.current.src = '';
     }
-    setPlaylist([]);
     setCurrentTrackIndex(-1);
     setIsPlaying(false);
   }, []);
@@ -224,23 +232,26 @@ export default function RadioStation() {
       setNowPlaying('');
       disconnectNetwork();
 
-      const peer = new Peer();
+      const peer = new Peer(PEER_CONFIG);
       currentPeerRef.current = peer;
 
       let timeout: NodeJS.Timeout | null = null;
+      let isResolved = false;
 
       peer.on('open', () => {
           const hostId = `steezyfm-${channel.toString().replace('.', '-')}`;
-          const conn = peer.connect(hostId);
+          const conn = peer.connect(hostId, { reliable: true });
           
           timeout = setTimeout(() => {
-              if (currentPeerRef.current?.id === peer.id && mode !== 'host') {
-                  setMode('locked_empty');
-                  if(synthRef.current) synthRef.current.setTuning(false, 1.0);
-              }
-          }, 10000);
+              if (isResolved) return;
+              isResolved = true;
+              setMode(prev => prev !== 'host' ? 'locked_empty' : prev);
+              if(synthRef.current) synthRef.current.setTuning(false, 1.0);
+          }, 8000);
 
           conn.on('open', () => {
+              if (isResolved) return;
+              isResolved = true;
               if(timeout) clearTimeout(timeout);
               setMode('locked_rx');
               if(synthRef.current) synthRef.current.setTuning(false, 0);
@@ -268,12 +279,18 @@ export default function RadioStation() {
 
       peer.on('error', (err) => {
          if (err.type === 'peer-unavailable') {
+             if (isResolved) return;
+             isResolved = true;
              if(timeout) clearTimeout(timeout);
              setMode('locked_empty');
              if(synthRef.current) synthRef.current.setTuning(false, 1.0);
          }
       });
-  }, [mode, disconnectNetwork]);
+
+      peer.on('disconnected', () => {
+         peer.reconnect();
+      });
+  }, [disconnectNetwork]);
 
   useEffect(() => {
       if(!power) return;
@@ -307,7 +324,7 @@ export default function RadioStation() {
     disconnectNetwork();
 
     const peerId = `steezyfm-${activeChannel.toString().replace('.', '-')}`;
-    const peer = new Peer(peerId);
+    const peer = new Peer(peerId, PEER_CONFIG);
     currentPeerRef.current = peer;
 
     peer.on('open', () => {
@@ -317,12 +334,16 @@ export default function RadioStation() {
     });
 
     peer.on('error', (err) => {
-        console.error(err);
+        console.error('Peer error in Host:', err.type, err);
         if(err.type === 'unavailable-id') {
             attemptRx(activeChannel);
         } else {
             setMode('locked_empty');
         }
+    });
+
+    peer.on('disconnected', () => {
+        peer.reconnect();
     });
 
     peer.on('connection', (conn) => {
