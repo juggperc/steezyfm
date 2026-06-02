@@ -227,19 +227,21 @@ export default function RadioStation() {
       const peer = new Peer();
       currentPeerRef.current = peer;
 
+      let timeout: NodeJS.Timeout | null = null;
+
       peer.on('open', () => {
           const hostId = `steezyfm-${channel.toString().replace('.', '-')}`;
           const conn = peer.connect(hostId);
           
-          const timeout = setTimeout(() => {
+          timeout = setTimeout(() => {
               if (currentPeerRef.current?.id === peer.id && mode !== 'host') {
                   setMode('locked_empty');
                   if(synthRef.current) synthRef.current.setTuning(false, 1.0);
               }
-          }, 3000);
+          }, 10000);
 
           conn.on('open', () => {
-              clearTimeout(timeout);
+              if(timeout) clearTimeout(timeout);
               setMode('locked_rx');
               if(synthRef.current) synthRef.current.setTuning(false, 0);
           });
@@ -266,6 +268,7 @@ export default function RadioStation() {
 
       peer.on('error', (err) => {
          if (err.type === 'peer-unavailable') {
+             if(timeout) clearTimeout(timeout);
              setMode('locked_empty');
              if(synthRef.current) synthRef.current.setTuning(false, 1.0);
          }
