@@ -1,0 +1,6 @@
+{
+  "name": "SteezyFM",
+  "description": "A realistic pirate internet radio simulation where you can broadcast MP3s via WebRTC.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
