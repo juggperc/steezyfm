@@ -484,7 +484,7 @@ export default function RadioStation() {
 
   return (
     <div 
-      className="w-full min-h-[100dvh] bg-zinc-400 text-zinc-800 flex items-center justify-center p-2 md:p-4 selection:bg-amber-500 selection:text-white overflow-y-auto overflow-x-hidden relative"
+      className="w-full min-h-[100dvh] bg-zinc-400 text-zinc-800 flex flex-col p-4 md:p-8 selection:bg-amber-500 selection:text-white overflow-y-auto overflow-x-hidden relative"
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
       onDrop={handleDrop}
     >
@@ -493,10 +493,10 @@ export default function RadioStation() {
       {/* Background Ambience */}
       <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay bg-[repeating-linear-gradient(transparent,transparent_2px,#fff_2px,#fff_4px)]"></div>
 
-      <div className="flex flex-col md:flex-row gap-4 md:gap-8 w-full max-w-5xl relative z-10 bg-zinc-200 p-4 md:p-8 rounded-xl shadow-2xl border-t border-l border-white/60 border-b-zinc-400 border-r-zinc-400 my-4 md:my-0">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-8 w-full max-w-5xl m-auto relative z-10 bg-zinc-200 p-4 md:p-8 rounded-xl shadow-2xl border-t border-l border-white/60 border-b-zinc-400 border-r-zinc-400 mb-8 md:mb-auto">
          
          {/* Main Interface */}
-         <div className="flex-1 flex flex-col gap-6">
+         <div className="flex-1 flex flex-col gap-6 order-2 md:order-1">
             
             {/* LCD Header */}
             <div className="bg-zinc-800 border-4 border-zinc-900 border-b-zinc-700/50 p-4 shrink-0 md:p-6 rounded-md shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] flex flex-col justify-between h-32 md:h-48 relative overflow-hidden font-mono">
@@ -617,7 +617,7 @@ export default function RadioStation() {
          </div>
 
          {/* Hardware Controls */}
-         <div className="w-full md:w-64 flex flex-row md:flex-col gap-4 md:gap-6 shrink-0 justify-between font-sans">
+         <div className="w-full md:w-64 flex flex-row md:flex-col gap-4 md:gap-6 shrink-0 justify-between font-sans order-1 md:order-2">
             
             <div className="border-t-2 border-l-2 border-white/60 border-b-2 border-r-2 border-zinc-400 p-4 md:p-6 flex flex-col items-center gap-4 md:gap-10 bg-zinc-200 flex-1 justify-center relative touch-none pointer-events-auto select-none rounded box-border shadow-inner"
                onPointerDown={(e) => {
